@@ -37,7 +37,7 @@ Publish results on github. Commit history is desired.
 ##### Administrator role IS required
 + **POST** on `/product` to add new product.   
 Parameters `name`, `price` and `quantity` are required, parameter `brand` is optional.  
-Example: `POST /product?name=pensil&price=0.2&quantity=19&brand=BIC`  
+Example: `POST /product?name=pencil&price=0.2&quantity=19&brand=BIC`  
 Successfully saved product as the response.
  
 + **PUT** on `/product` to update the product.  
@@ -51,9 +51,9 @@ Example: `DELETE /product?id=1`
 Status 200 OK as the response.
 
 ##### Administrator role is NOT required
-+ **GET** on `/product` to find and list products.   
++ **GET** on `/products` to find and list products.   
 Parameters `name` and `brand` are optional. Case INSENSITIVE.  
-Examples: `GET /products`, `GET /products?name=pensil&brand=bic`  
+Examples: `GET /products`, `GET /products?name=pencil&brand=bic`  
 Get without parameters is limited with 1000 results.  
 
 + **GET** on `/leftovers` to find and list all products which quantity is less than 5.   

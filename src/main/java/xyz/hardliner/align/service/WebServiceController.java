@@ -1,8 +1,7 @@
-package xyz.hardliner.align;
+package xyz.hardliner.align.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,38 +12,36 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import xyz.hardliner.align.domain.Product;
-import xyz.hardliner.align.domain.ProductRepository;
 
 import javax.transaction.Transactional;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 public class WebServiceController {
 
-	private static final Integer LEFTOVER_TRIGGER = 5;
-	private final ProductRepository productRepository;
+	private final ProductHandler handler;
 
 	@RequestMapping(value = "/products", params = "name")
 	public List<Product> getProductsByName(@RequestParam(value = "name") String name) {
-		return productRepository.findAllByNameIgnoreCase(name);
+		return handler.findAllByName(name);
 	}
 
 	@RequestMapping(value = "/products", params = "brand")
-	public List<Product> getProductsByBrand(@RequestParam(value = "brand") String brand) {
-		return productRepository.findAllByBrandIgnoreCase(brand);
+	public List<Product> getProductsByNameAndBrand(@RequestParam(value = "brand") String brand) {
+		return handler.findAllByBrand(brand);
 	}
 
 	@RequestMapping(value = "/products", params = {"name", "brand"})
-	public List<Product> getProductsByBrand(@RequestParam(value = "name") String name,
-	                                        @RequestParam(value = "brand") String brand) {
-		return productRepository.findAllByNameIgnoreCaseAndBrandIgnoreCase(name, brand);
+	public List<Product> getProductsByNameAndBrand(@RequestParam(value = "name") String name,
+	                                               @RequestParam(value = "brand") String brand) {
+		return handler.findAllByNameAndBrand(name, brand);
 	}
 
 	@RequestMapping("/products")
 	public List<Product> getProducts() {
-		Pageable limit = PageRequest.of(0, 1000);
-		return productRepository.findAll(limit).getContent();
+		return handler.findAll();
 	}
 
 	@PostMapping("/product")
@@ -52,10 +49,7 @@ public class WebServiceController {
 	                             @RequestParam(value = "brand", required = false) String brand,
 	                             @RequestParam(value = "price") Double price,
 	                             @RequestParam(value = "quantity") Integer quantity) {
-		nameValidation(name);
-		priceValidation(price);
-		quantityValidation(quantity);
-		return productRepository.save(new Product(name, brand, price, quantity));
+		return handler.save(name, brand, price, quantity);
 	}
 
 	@PutMapping("/product")
@@ -64,63 +58,25 @@ public class WebServiceController {
 	                             @RequestParam(value = "brand", required = false) String brand,
 	                             @RequestParam(value = "price", required = false) Double price,
 	                             @RequestParam(value = "quantity", required = false) Integer quantity) {
-		Product product = productRepository.findById(id).orElseThrow(()
-				-> new IllegalArgumentException("Cannot find product with specified id"));
-		if (name != null) {
-			nameValidation(name);
-			product.setName(name);
-		}
-		if (brand != null) {
-			product.setBrand(brand);
-		}
-		if (price != null) {
-			priceValidation(price);
-			product.setPrice(price);
-		}
-		if (quantity != null) {
-			quantityValidation(quantity);
-			product.setQuantity(quantity);
-		}
-		return productRepository.save(product);
+		return handler.save(id, name, brand, price, quantity);
 	}
 
 	@Transactional
 	@DeleteMapping("/product")
 	public void removeProduct(@RequestParam(value = "id") Long id) {
-		productRepository.removeById(id);
+		handler.removeById(id);
 	}
 
 	@RequestMapping("/leftovers")
 	public List<Product> getLeftovers() {
-		return productRepository.findAllByQuantityLessThan(LEFTOVER_TRIGGER);
+		return handler.getLeftovers();
 	}
 
 	@ExceptionHandler(IllegalArgumentException.class)
 	public ResponseEntity<String> handleConflict(IllegalArgumentException e) {
+		log.error("Bad request:", e);
 		return new ResponseEntity<>(e.getLocalizedMessage(), HttpStatus.BAD_REQUEST);
 	}
 
-	private void nameValidation(String name) {
-		if (name == null) {
-			throw new IllegalArgumentException("Name is missing");
-		} else if (name.isEmpty()) {
-			throw new IllegalArgumentException("Name cannot be empty");
-		}
-	}
 
-	private void priceValidation(Double price) {
-		if (price == null) {
-			throw new IllegalArgumentException("Price is missing");
-		} else if (price < 0) {
-			throw new IllegalArgumentException("Price cannot be negative");
-		}
-	}
-
-	private void quantityValidation(Integer quantity) {
-		if (quantity == null) {
-			throw new IllegalArgumentException("Quantity is missing");
-		} else if (quantity < 0) {
-			throw new IllegalArgumentException("Quantity cannot be negative");
-		}
-	}
 }
