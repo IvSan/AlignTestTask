@@ -1,11 +1,15 @@
 package xyz.hardliner.align;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import xyz.hardliner.align.domain.Product;
@@ -39,10 +43,11 @@ public class WebServiceController {
 
 	@RequestMapping("/products")
 	public List<Product> getProducts() {
-		return productRepository.findAll();
+		Pageable limit = PageRequest.of(0, 1000);
+		return productRepository.findAll(limit).getContent();
 	}
 
-	@RequestMapping(value = "/product", method = RequestMethod.POST)
+	@PostMapping("/product")
 	public Product addNewProduct(@RequestParam(value = "name") String name,
 	                             @RequestParam(value = "brand", required = false) String brand,
 	                             @RequestParam(value = "price") Double price,
@@ -53,7 +58,7 @@ public class WebServiceController {
 		return productRepository.save(new Product(name, brand, price, quantity));
 	}
 
-	@RequestMapping(value = "/product", method = RequestMethod.PUT)
+	@PutMapping("/product")
 	public Product updateProduct(@RequestParam(value = "id") Long id,
 	                             @RequestParam(value = "name", required = false) String name,
 	                             @RequestParam(value = "brand", required = false) String brand,
@@ -80,7 +85,7 @@ public class WebServiceController {
 	}
 
 	@Transactional
-	@RequestMapping(value = "/product", method = RequestMethod.DELETE)
+	@DeleteMapping("/product")
 	public void removeProduct(@RequestParam(value = "id") Long id) {
 		productRepository.removeById(id);
 	}
