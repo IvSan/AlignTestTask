@@ -14,20 +14,24 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
+	private static final String READONLY = "READONLY";
+	private static final String CRUD = "CRUD";
+
 	@Autowired
 	public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
 		auth.inMemoryAuthentication()
 				.withUser("user").password(passwordEncoder().encode("password"))
-				.roles("READONLY").and()
+				.roles(READONLY).and()
 				.withUser("admin").password(passwordEncoder().encode("secret"))
-				.roles("CRUD");
+				.roles(CRUD);
 	}
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http.authorizeRequests()
-				.antMatchers("/products").hasAnyRole("READONLY", "CRUD")
-				.antMatchers("/product").hasAnyRole("CRUD")
+				.antMatchers("/products").hasAnyRole(READONLY, CRUD)
+				.antMatchers("/product").hasAnyRole(CRUD)
+				.antMatchers("/leftovers").hasAnyRole(READONLY, CRUD)
 				.and().httpBasic();
 		http.csrf().disable();
 		http.headers().frameOptions().disable();

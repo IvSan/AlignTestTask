@@ -1,7 +1,9 @@
 package xyz.hardliner.align;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.ui.ModelMap;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -9,25 +11,111 @@ import org.springframework.web.bind.annotation.RestController;
 import xyz.hardliner.align.domain.Product;
 import xyz.hardliner.align.domain.ProductRepository;
 
+import javax.transaction.Transactional;
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
 public class WebServiceController {
 
+	private static final Integer LEFTOVER_TRIGGER = 5;
 	private final ProductRepository productRepository;
 
+	@RequestMapping(value = "/products", params = "name")
+	public List<Product> getProductsByName(@RequestParam(value = "name") String name) {
+		return productRepository.findAllByNameIgnoreCase(name);
+	}
+
+	@RequestMapping(value = "/products", params = "brand")
+	public List<Product> getProductsByBrand(@RequestParam(value = "brand") String brand) {
+		return productRepository.findAllByBrandIgnoreCase(brand);
+	}
+
+	@RequestMapping(value = "/products", params = {"name", "brand"})
+	public List<Product> getProductsByBrand(@RequestParam(value = "name") String name,
+	                                        @RequestParam(value = "brand") String brand) {
+		return productRepository.findAllByNameIgnoreCaseAndBrandIgnoreCase(name, brand);
+	}
+
 	@RequestMapping("/products")
-	public List<Product> greeting(@RequestParam(value = "name", defaultValue = "World") String name) {
+	public List<Product> getProducts() {
 		return productRepository.findAll();
 	}
 
 	@RequestMapping(value = "/product", method = RequestMethod.POST)
-	public Product showLoginPage(@RequestParam(value = "name") String name,
+	public Product addNewProduct(@RequestParam(value = "name") String name,
 	                             @RequestParam(value = "brand", required = false) String brand,
 	                             @RequestParam(value = "price") Double price,
 	                             @RequestParam(value = "quantity") Integer quantity) {
+		nameValidation(name);
+		priceValidation(price);
+		quantityValidation(quantity);
 		return productRepository.save(new Product(name, brand, price, quantity));
 	}
 
+	@RequestMapping(value = "/product", method = RequestMethod.PUT)
+	public Product updateProduct(@RequestParam(value = "id") Long id,
+	                             @RequestParam(value = "name", required = false) String name,
+	                             @RequestParam(value = "brand", required = false) String brand,
+	                             @RequestParam(value = "price", required = false) Double price,
+	                             @RequestParam(value = "quantity", required = false) Integer quantity) {
+		Product product = productRepository.findById(id).orElseThrow(()
+				-> new IllegalArgumentException("Cannot find product with specified id"));
+		if (name != null) {
+			nameValidation(name);
+			product.setName(name);
+		}
+		if (brand != null) {
+			product.setBrand(brand);
+		}
+		if (price != null) {
+			priceValidation(price);
+			product.setPrice(price);
+		}
+		if (quantity != null) {
+			quantityValidation(quantity);
+			product.setQuantity(quantity);
+		}
+		return productRepository.save(product);
+	}
+
+	@Transactional
+	@RequestMapping(value = "/product", method = RequestMethod.DELETE)
+	public void removeProduct(@RequestParam(value = "id") Long id) {
+		productRepository.removeById(id);
+	}
+
+	@RequestMapping("/leftovers")
+	public List<Product> getLeftovers() {
+		return productRepository.findAllByQuantityLessThan(LEFTOVER_TRIGGER);
+	}
+
+	@ExceptionHandler(IllegalArgumentException.class)
+	public ResponseEntity<String> handleConflict(IllegalArgumentException e) {
+		return new ResponseEntity<>(e.getLocalizedMessage(), HttpStatus.BAD_REQUEST);
+	}
+
+	private void nameValidation(String name) {
+		if (name == null) {
+			throw new IllegalArgumentException("Name is missing");
+		} else if (name.isEmpty()) {
+			throw new IllegalArgumentException("Name cannot be empty");
+		}
+	}
+
+	private void priceValidation(Double price) {
+		if (price == null) {
+			throw new IllegalArgumentException("Price is missing");
+		} else if (price < 0) {
+			throw new IllegalArgumentException("Price cannot be negative");
+		}
+	}
+
+	private void quantityValidation(Integer quantity) {
+		if (quantity == null) {
+			throw new IllegalArgumentException("Quantity is missing");
+		} else if (quantity < 0) {
+			throw new IllegalArgumentException("Quantity cannot be negative");
+		}
+	}
 }
