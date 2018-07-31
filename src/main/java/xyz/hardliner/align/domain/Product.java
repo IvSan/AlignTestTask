@@ -1,5 +1,6 @@
 package xyz.hardliner.align.domain;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,6 +15,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "products")
 @NoArgsConstructor
+@EqualsAndHashCode
 public class Product {
 	@Id
 	@GeneratedValue
