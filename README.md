@@ -33,6 +33,11 @@ Product details:
 Publish results on github. Commit history is desired.
  
 ## Implementation
+
+#### Authentication  
+
+2 user are existing: `user` and `admin`. Passwords configure in `application.properties` file of chosen config profile.
+
 #### Rest web service
 ##### Administrator role IS required
 + **POST** on `/product` to add new product.   
@@ -64,3 +69,7 @@ Get without parameters is limited with 1000 results.
 + **GET** on `/leftovers` to find and list all products which quantity is less than 5.   
 No parameters needed.  
 Example: `GET /leftovers`
+
+#### Dockerized application
+To create docker container use command `mvn clean package dockerfile:build`  
+Example command to run the container `docker run -p 8081:8080 docker/align:0.1`

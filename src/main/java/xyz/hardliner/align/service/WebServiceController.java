@@ -43,6 +43,12 @@ public class WebServiceController {
 		return handler.save(id, name, brand, price, quantity);
 	}
 
+	@Transactional
+	@DeleteMapping("/product")
+	public void removeProduct(@RequestParam(value = "id") Long id) {
+		handler.removeById(id);
+	}
+
 	@RequestMapping(value = "/products")
 	public List<Product> getProducts(@RequestParam(value = "name", required = false) String name,
 	                                 @RequestParam(value = "brand", required = false) String brand) {
@@ -56,12 +62,6 @@ public class WebServiceController {
 		return ResponseEntity.ok()
 				.header(CONTENT_DISPOSITION, "attachment; filename=\"" + XlsGenerator.fileName() + "\"")
 				.body(xlsGenerator.create(products));
-	}
-
-	@Transactional
-	@DeleteMapping("/product")
-	public void removeProduct(@RequestParam(value = "id") Long id) {
-		handler.removeById(id);
 	}
 
 	@RequestMapping("/leftovers")
