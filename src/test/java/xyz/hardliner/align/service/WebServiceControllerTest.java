@@ -11,8 +11,11 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import xyz.hardliner.align.SecurityConfig;
+import xyz.hardliner.align.domain.Product;
 
 import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -69,6 +72,7 @@ public class WebServiceControllerTest {
 	@Test
 	@WithMockUser(username = "admin", password = "secret", roles = "CRUD")
 	public void testAddNewProductByAdmin() throws Exception {
+		when(handler.save(anyString(), anyString(), anyDouble(), anyInt())).thenReturn(new Product());
 		this.mockMvc.perform(post("/product")
 				.param("name", "pencil")
 				.param("brand", "BIC")
@@ -114,6 +118,7 @@ public class WebServiceControllerTest {
 	@Test
 	@WithMockUser(username = "admin", password = "secret", roles = "CRUD")
 	public void testUpdateProductByAdmin() throws Exception {
+		when(handler.save(anyLong(), anyString(), anyString(), anyDouble(), anyInt())).thenReturn(new Product());
 		this.mockMvc.perform(put("/product")
 				.param("id", "1")
 				.param("name", "pencil")
@@ -164,6 +169,27 @@ public class WebServiceControllerTest {
 				.param("brand", "BIC")).andExpect(status().isOk());
 		verify(handler, times(1)).find(eq(null), eq("BIC"));
 		this.mockMvc.perform(get("/products")
+				.param("name", "pencil")
+				.param("brand", "BIC")).andExpect(status().isOk());
+		verify(handler, times(1)).find(eq("pencil"), eq("BIC"));
+		verifyNoMoreInteractions(handler);
+	}
+
+	/**
+	 * Test for getting products.
+	 */
+	@Test
+	@WithMockUser(username = "user", roles = "READ")
+	public void testGetProductsViaXls() throws Exception {
+		this.mockMvc.perform(get("/products/xls")).andExpect(status().isOk());
+		verify(handler, times(1)).find(eq(null), eq(null));
+		this.mockMvc.perform(get("/products/xls")
+				.param("name", "pencil")).andExpect(status().isOk());
+		verify(handler, times(1)).find(eq("pencil"), eq(null));
+		this.mockMvc.perform(get("/products/xls")
+				.param("brand", "BIC")).andExpect(status().isOk());
+		verify(handler, times(1)).find(eq(null), eq("BIC"));
+		this.mockMvc.perform(get("/products/xls")
 				.param("name", "pencil")
 				.param("brand", "BIC")).andExpect(status().isOk());
 		verify(handler, times(1)).find(eq("pencil"), eq("BIC"));
