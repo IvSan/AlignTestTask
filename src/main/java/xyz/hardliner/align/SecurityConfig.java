@@ -17,7 +17,7 @@ import javax.annotation.PostConstruct;
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-	private static final String READONLY = "READONLY";
+	private static final String READ = "READ";
 	private static final String CRUD = "CRUD";
 
 	private AuthenticationManagerBuilder auth;
@@ -40,17 +40,17 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	public void configureGlobal() throws Exception {
 		auth.inMemoryAuthentication()
 				.withUser(userLogin).password(passwordEncoder().encode(userPassword))
-				.roles(READONLY).and()
+				.roles(READ).and()
 				.withUser(adminLogin).password(passwordEncoder().encode(adminPassword))
-				.roles(CRUD);
+				.roles(READ, CRUD);
 	}
 
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http.authorizeRequests()
-				.antMatchers("/products").hasAnyRole(READONLY, CRUD)
+				.antMatchers("/products/**").hasAnyRole(READ)
 				.antMatchers("/product").hasAnyRole(CRUD)
-				.antMatchers("/leftovers").hasAnyRole(READONLY, CRUD)
+				.antMatchers("/leftovers").hasAnyRole(READ)
 				.and().httpBasic();
 		http.csrf().disable();
 		http.headers().frameOptions().disable();

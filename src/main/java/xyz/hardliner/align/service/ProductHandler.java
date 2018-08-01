@@ -19,21 +19,17 @@ public class ProductHandler {
 	private Integer leftoverTrigger;
 	private final ProductRepository productRepository;
 
-	public List<Product> findAllByName(String name) {
-		return productRepository.findAllByNameIgnoreCase(name);
-	}
-
-	public List<Product> findAllByBrand(String brand) {
-		return productRepository.findAllByBrandIgnoreCase(brand);
-	}
-
-	public List<Product> findAllByNameAndBrand(String name, String brand) {
-		return productRepository.findAllByNameIgnoreCaseAndBrandIgnoreCase(name, brand);
-	}
-
-	public List<Product> findAll() {
-		Pageable limit = PageRequest.of(0, 1000);
-		return productRepository.findAll(limit).getContent();
+	public List<Product> find(String name, String brand) {
+		if (name == null && brand == null) {
+			Pageable limit = PageRequest.of(0, 1000);
+			return productRepository.findAll(limit).getContent();
+		} else if (name != null && brand == null) {
+			return productRepository.findAllByNameIgnoreCase(name);
+		} else if (name == null) {
+			return productRepository.findAllByBrandIgnoreCase(brand);
+		} else {
+			return productRepository.findAllByNameIgnoreCaseAndBrandIgnoreCase(name, brand);
+		}
 	}
 
 	public Product save(String name, String brand, Double price, Integer quantity) {

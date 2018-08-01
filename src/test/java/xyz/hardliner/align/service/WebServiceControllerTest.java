@@ -58,7 +58,7 @@ public class WebServiceControllerTest {
 	 * Test for adding new product by user.
 	 */
 	@Test
-	@WithMockUser(username = "user", roles = "READONLY")
+	@WithMockUser(username = "user", roles = "READ")
 	public void testAddNewProductByUser() throws Exception {
 		this.mockMvc.perform(post("/product")).andExpect(status().isForbidden());
 	}
@@ -103,7 +103,7 @@ public class WebServiceControllerTest {
 	 * Test for editing a product by user.
 	 */
 	@Test
-	@WithMockUser(username = "user", roles = "READONLY")
+	@WithMockUser(username = "user", roles = "READ")
 	public void testUpdateProductByUser() throws Exception {
 		this.mockMvc.perform(put("/product")).andExpect(status().isForbidden());
 	}
@@ -130,7 +130,7 @@ public class WebServiceControllerTest {
 	 * Test for deleting a product by user.
 	 */
 	@Test
-	@WithMockUser(username = "user", roles = "READONLY")
+	@WithMockUser(username = "user", roles = "READ")
 	public void testDeleteProductByUser() throws Exception {
 		this.mockMvc.perform(delete("/product")).andExpect(status().isForbidden());
 	}
@@ -153,20 +153,20 @@ public class WebServiceControllerTest {
 	 * Test for getting products.
 	 */
 	@Test
-	@WithMockUser(username = "user", roles = "READONLY")
+	@WithMockUser(username = "user", roles = "READ")
 	public void testGetProducts() throws Exception {
 		this.mockMvc.perform(get("/products")).andExpect(status().isOk());
-		verify(handler, times(1)).findAll();
+		verify(handler, times(1)).find(eq(null), eq(null));
 		this.mockMvc.perform(get("/products")
 				.param("name", "pencil")).andExpect(status().isOk());
-		verify(handler, times(1)).findAllByName("pencil");
+		verify(handler, times(1)).find(eq("pencil"), eq(null));
 		this.mockMvc.perform(get("/products")
 				.param("brand", "BIC")).andExpect(status().isOk());
-		verify(handler, times(1)).findAllByBrand("BIC");
+		verify(handler, times(1)).find(eq(null), eq("BIC"));
 		this.mockMvc.perform(get("/products")
 				.param("name", "pencil")
 				.param("brand", "BIC")).andExpect(status().isOk());
-		verify(handler, times(1)).findAllByNameAndBrand("pencil", "BIC");
+		verify(handler, times(1)).find(eq("pencil"), eq("BIC"));
 		verifyNoMoreInteractions(handler);
 	}
 
@@ -174,7 +174,7 @@ public class WebServiceControllerTest {
 	 * Test for getting leftovers.
 	 */
 	@Test
-	@WithMockUser(username = "user", roles = "READONLY")
+	@WithMockUser(username = "user", roles = "READ")
 	public void testGetLeftovers() throws Exception {
 		this.mockMvc.perform(get("/leftovers")).andExpect(status().isOk());
 		verify(handler, times(1)).getLeftovers();

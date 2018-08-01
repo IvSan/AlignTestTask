@@ -16,33 +16,15 @@ import xyz.hardliner.align.domain.Product;
 import javax.transaction.Transactional;
 import java.util.List;
 
+import static org.springframework.http.HttpHeaders.CONTENT_DISPOSITION;
+
 @Slf4j
 @RestController
 @RequiredArgsConstructor
 public class WebServiceController {
 
 	private final ProductHandler handler;
-
-	@RequestMapping(value = "/products", params = "name")
-	public List<Product> getProductsByName(@RequestParam(value = "name") String name) {
-		return handler.findAllByName(name);
-	}
-
-	@RequestMapping(value = "/products", params = "brand")
-	public List<Product> getProductsByNameAndBrand(@RequestParam(value = "brand") String brand) {
-		return handler.findAllByBrand(brand);
-	}
-
-	@RequestMapping(value = "/products", params = {"name", "brand"})
-	public List<Product> getProductsByNameAndBrand(@RequestParam(value = "name") String name,
-	                                               @RequestParam(value = "brand") String brand) {
-		return handler.findAllByNameAndBrand(name, brand);
-	}
-
-	@RequestMapping("/products")
-	public List<Product> getProducts() {
-		return handler.findAll();
-	}
+	private final XlsGenerator xlsGenerator;
 
 	@PostMapping("/product")
 	public Product addNewProduct(@RequestParam(value = "name") String name,
@@ -61,6 +43,21 @@ public class WebServiceController {
 		return handler.save(id, name, brand, price, quantity);
 	}
 
+	@RequestMapping(value = "/products")
+	public List<Product> getProducts(@RequestParam(value = "name", required = false) String name,
+	                                 @RequestParam(value = "brand", required = false) String brand) {
+		return handler.find(name, brand);
+	}
+
+	@RequestMapping(value = "/products/xls")
+	public ResponseEntity<byte[]> getProductsXls(@RequestParam(value = "name", required = false) String name,
+	                                             @RequestParam(value = "brand", required = false) String brand) {
+		List<Product> products = handler.find(name, brand);
+		return ResponseEntity.ok()
+				.header(CONTENT_DISPOSITION, "attachment; filename=\"" + XlsGenerator.fileName() + "\"")
+				.body(xlsGenerator.create(products));
+	}
+
 	@Transactional
 	@DeleteMapping("/product")
 	public void removeProduct(@RequestParam(value = "id") Long id) {
@@ -77,6 +74,4 @@ public class WebServiceController {
 		log.error("Bad request:", e);
 		return new ResponseEntity<>(e.getLocalizedMessage(), HttpStatus.BAD_REQUEST);
 	}
-
-
 }

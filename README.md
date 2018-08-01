@@ -56,6 +56,11 @@ Parameters `name` and `brand` are optional. Case INSENSITIVE.
 Examples: `GET /products`, `GET /products?name=pencil&brand=bic`  
 Get without parameters is limited with 1000 results.  
 
++ **GET** on `/products/xls` to find products and export search result as an xls file.     
+Parameters `name` and `brand` are optional. Case INSENSITIVE.  
+Examples: `GET /products/xls`, `GET /products/xls?brand=bic`  
+Get without parameters is limited with 1000 results.  
+
 + **GET** on `/leftovers` to find and list all products which quantity is less than 5.   
 No parameters needed.  
 Example: `GET /leftovers`

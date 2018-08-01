@@ -43,28 +43,28 @@ public class ProductHandlerTest {
 	@Test
 	public void findAll() {
 		when(repository.findAll(any(Pageable.class))).thenReturn(Page.empty());
-		productHandler.findAll();
+		productHandler.find(null, null);
 		verify(repository, times(1)).findAll(any(Pageable.class));
 		verifyNoMoreInteractions(repository);
 	}
 
 	@Test
 	public void findAllByName() {
-		productHandler.findAllByName(TEST);
+		productHandler.find(TEST, null);
 		verify(repository, times(1)).findAllByNameIgnoreCase(eq(TEST));
 		verifyNoMoreInteractions(repository);
 	}
 
 	@Test
 	public void findAllByBrand() {
-		productHandler.findAllByBrand(TEST);
+		productHandler.find(null, TEST);
 		verify(repository, times(1)).findAllByBrandIgnoreCase(eq(TEST));
 		verifyNoMoreInteractions(repository);
 	}
 
 	@Test
 	public void findAllByNameAndBrand() {
-		productHandler.findAllByNameAndBrand(TEST, TEST);
+		productHandler.find(TEST, TEST);
 		verify(repository, times(1)).findAllByNameIgnoreCaseAndBrandIgnoreCase(eq(TEST), eq(TEST));
 		verifyNoMoreInteractions(repository);
 	}
