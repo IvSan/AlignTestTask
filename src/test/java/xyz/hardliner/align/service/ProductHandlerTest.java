@@ -16,7 +16,6 @@ import xyz.hardliner.align.domain.ProductRepository;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -75,6 +74,13 @@ public class ProductHandlerTest {
 		productHandler.save(TEST, TEST, 1.0, 1);
 		verify(repository, times(1)).save(eq(new Product(TEST, TEST, 1.0, 1)));
 		verifyNoMoreInteractions(repository);
+	}
+
+	@Test
+	public void saveWithWrongName() {
+		exception.expect(IllegalArgumentException.class);
+		exception.expectMessage("Name cannot be empty");
+		productHandler.save("", TEST, 1.0, 1);
 	}
 
 	@Test
